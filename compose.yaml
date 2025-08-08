@@ -1,0 +1,37 @@
+version: '3.8'
+services:
+  minio:
+    image: quay.io/minio/minio:latest
+    container_name: minio_container
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ACCESS_KEY: minio
+      MINIO_SECRET_KEY: minio_file_service
+    command: server /data --console-address ":9001"
+
+  minio-setup:
+    image: minio/mc
+    depends_on:
+      - minio
+    environment:
+      MC_HOST: http://minio:minio_file_service@minio:9000
+    entrypoint: >
+      /bin/sh -c "
+        echo Starting MinIO...;
+        mc alias set minio http://minio:9000 minio minio_file_service;
+        mc mb minio/our-bucket;
+        exit 0;
+      "
+
+  minio-db:
+    image: 'postgres:latest'
+    container_name: 'minio-db-container'
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=mysecretpassword
+      - POSTGRES_DB=postgres
+    ports:
+      - 2345:5432
+
