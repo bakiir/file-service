@@ -58,7 +58,7 @@ public class FileService {
         fileToDb.setFileName(convertedName);
         fileRepository.save(fileToDb);
 
-        return fileToDb.getFileName()+" succesfulle added";
+        return fileToDb.getFileName();
 
         }catch (Exception e){
             e.printStackTrace();
