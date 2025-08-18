@@ -33,43 +33,52 @@ public class FileService {
 
     public String uploadFile(MultipartFile file){
 
+        if (file == null){
+            throw new NullPointerException();
+        }else {
+            File fileToDb = new File();
+            fileToDb.setSize(file.getSize());
+            fileToDb.setOriginalName(file.getOriginalFilename());
+            fileToDb.setMimeType(file.getContentType());
 
-        File fileToDb = new File();
-        fileToDb.setSize(file.getSize());
-        fileToDb.setOriginalName(file.getOriginalFilename());
-        fileToDb.setMimeType(file.getContentType());
+            fileToDb = fileRepository.save(fileToDb);
 
-        fileToDb = fileRepository.save(fileToDb);
-
-        String convertedName = convertToSha1("File_"+fileToDb.getId());
+            String convertedName = convertToSha1("File_" + fileToDb.getId());
 
 
-        try {
+            try {
 
-            minioClient.putObject(
-                    PutObjectArgs.builder()
-                            .bucket(bucket)
-                            .object(convertedName)
-                            .stream(file.getInputStream(), file.getSize(), -1)
-                            .contentType(file.getContentType())
-                            .build()
-            );
+                minioClient.putObject(
+                        PutObjectArgs.builder()
+                                .bucket(bucket)
+                                .object(convertedName)
+                                .stream(file.getInputStream(), file.getSize(), -1)
+                                .contentType(file.getContentType())
+                                .build()
+                );
 
-        fileToDb.setFileName(convertedName);
-        fileRepository.save(fileToDb);
+                fileToDb.setFileName(convertedName);
+                fileRepository.save(fileToDb);
 
-        return fileToDb.getFileName();
+                return fileToDb.getFileName();
 
-        }catch (Exception e){
-            e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return "File is not uploaded!";
         }
-        return "File is not uploaded!";
     }
 
 
     public ByteArrayResource download(String hashName) {
+
+        if (hashName == null) {
+            throw  new NullPointerException();
+        }
+
         File file = fileRepository.findByFileName(hashName);
-        if (file == null) {
+
+        if (file == null){
             return null;
         }
 
