@@ -147,33 +147,44 @@ class FileServiceTest {
     }
 
     //============================ download() method's tests ============================
+            @Test
+        void testDownload_SuccessfulRetrieval_ReturnsByteArrayResource() throws Exception {
+            // Arrange
+            String hashName = "test-hash";
+            String originalName = "707.png";
+            String expectedExtension = ".png";
+            String expectedDownloadName = hashName + expectedExtension;
+            byte[] expectedBytes = "test content".getBytes();
 
-    @Test
-    void testDownload_Success() throws Exception {
-        // given
-        String hashName = "abc123";
-        File entity = new File();
-        entity.setId(1L);
-        entity.setFileName(hashName);
-        entity.setOriginalName("test.png");
+            // Create a ByteArrayInputStream to simulate file content
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(expectedBytes);
 
-        when(fileRepository.findByFileName(hashName)).thenReturn(entity);
+            // Create a GetObjectResponse that wraps the ByteArrayInputStream
+            GetObjectResponse getObjectResponse = new GetObjectResponse(
+                    null, // Headers (can be null for testing)
+                    bucket, // Bucket name
+                    null, // Region (can be null for testing)
+                    hashName, // Object name
+                    inputStream // InputStream
+            );
 
-        byte[] fileBytes = "hello".getBytes();
+            File file = new File();
+            file.setOriginalName(originalName);
 
-        // Создаем мок GetObjectResponse
-        GetObjectResponse response = mock(GetObjectResponse.class);
-        when(response.readAllBytes()).thenReturn(fileBytes);
+            // Mock repository and MinioClient
+            when(fileRepository.findByFileName(hashName)).thenReturn(file);
+            when(minioClient.getObject(ArgumentMatchers.any(GetObjectArgs.class))).thenReturn(getObjectResponse);
 
-        when(minioClient.getObject(ArgumentMatchers.any(GetObjectArgs.class))).thenReturn(response);
+            // Act
+            ByteArrayResource result = fileService.download(hashName);
 
-        // when
-        ByteArrayResource result = fileService.download(hashName);
-
-        // then
-        assertNotNull(result);
-        assertArrayEquals(fileBytes, result.getByteArray());
-    }
+            // Assert
+            assertNotNull(result, "ByteArrayResource should not be null");
+            assertArrayEquals(expectedBytes, result.getByteArray(), "ByteArrayResource content should match expected bytes");
+            verify(fileRepository).findByFileName(hashName);
+            verify(minioClient).getObject(argThat(args ->
+                    args.bucket().equals(bucket) && args.object().equals(hashName)));
+        }
 
 
 
