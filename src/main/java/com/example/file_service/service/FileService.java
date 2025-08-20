@@ -51,7 +51,7 @@ public class FileService {
                 minioClient.putObject(
                         PutObjectArgs.builder()
                                 .bucket(bucket)
-//                                .object(convertedName)
+                                .object(convertedName)
                                 .stream(file.getInputStream(), file.getSize(), -1)
                                 .contentType(file.getContentType())
                                 .build()
