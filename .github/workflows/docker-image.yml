@@ -35,4 +35,5 @@ jobs:
         run: chmod +x gradlew
 
       - name: Run tests
-        run: ./gradlew test
+        run: ./gradlew test --tests com.example.file_service.service.FileServiceTest
+
