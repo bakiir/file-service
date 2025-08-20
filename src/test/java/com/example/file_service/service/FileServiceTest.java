@@ -47,7 +47,7 @@ class FileServiceTest {
         fileRepository = mock(FileRepository.class);
         minioClient = mock(MinioClient.class);
         fileMapper = mock(FileMapper.class);
-//        fileService = new FileService(minioClient, fileRepository, fileMapper);
+        fileService = new FileService(minioClient, fileRepository, fileMapper);
 
         ReflectionTestUtils.setField(fileService, "bucket", bucket);
     }
